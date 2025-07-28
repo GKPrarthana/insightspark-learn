@@ -1,31 +1,21 @@
 import { useState } from "react";
+import { UserButton, useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { 
   Bell, 
-  GraduationCap, 
-  Settings, 
-  LogOut, 
-  User,
-  ChevronDown
+  GraduationCap
 } from "lucide-react";
 
 interface HeaderProps {
-  userRole: "teacher" | "student" | "guardian";
-  userName: string;
   notifications?: number;
-  onLogout?: () => void;
 }
 
-export function Header({ userRole, userName, notifications = 0, onLogout }: HeaderProps) {
+export function Header({ notifications = 0 }: HeaderProps) {
+  const { user } = useUser();
+  
+  const userRole = user?.unsafeMetadata?.role as "teacher" | "student" | "guardian" || "student";
+  const userName = user?.fullName || user?.firstName || "User";
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const getRoleColor = (role: string) => {
@@ -81,37 +71,16 @@ export function Header({ userRole, userName, notifications = 0, onLogout }: Head
               )}
             </Button>
 
-            {/* User dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
-                    <AvatarFallback>{userName.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:block text-sm font-medium">{userName}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem className="flex items-center space-x-2">
-                  <User className="w-4 h-4" />
-                  <span>Profile Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center space-x-2">
-                  <Settings className="w-4 h-4" />
-                  <span>Account Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={onLogout}
-                  className="flex items-center space-x-2 text-destructive focus:text-destructive"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* User Button */}
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "h-8 w-8",
+                  userButtonTrigger: "focus:shadow-none"
+                }
+              }}
+              afterSignOutUrl="/"
+            />
           </div>
         </div>
       </div>

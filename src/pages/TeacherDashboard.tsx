@@ -140,12 +140,7 @@ export function TeacherDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        userRole="teacher" 
-        userName="Dr. Emily Rodriguez" 
-        notifications={5}
-        onLogout={() => console.log("Logout")}
-      />
+      <Header notifications={5} />
       
       <div className="flex">
         <Navigation 

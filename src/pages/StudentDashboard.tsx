@@ -149,12 +149,7 @@ export function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        userRole="student" 
-        userName="Alex Thompson" 
-        notifications={3}
-        onLogout={() => console.log("Logout")}
-      />
+      <Header notifications={3} />
       
       <div className="flex">
         <Navigation 
