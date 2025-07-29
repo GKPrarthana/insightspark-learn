@@ -58,30 +58,74 @@ export function useStudent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Create authenticated Supabase client
+  // Create authenticated Supabase client with enhanced error handling
   const getAuthenticatedClient = async () => {
     console.log('🔐 Getting Clerk token for Supabase...');
-    const token = await getToken({ template: 'supabase' });
     
-    if (!token) {
-      console.error('❌ No Clerk token available');
-      throw new Error('No authentication token available');
-    }
-    
-    console.log('✅ Got Clerk token, creating Supabase client');
-    console.log('Token preview:', token.substring(0, 50) + '...');
-    
-    return createClient<Database>(
-      "https://orrojshkpfiwhzayxzgn.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm9qc2hrcGZpd2h6YXl4emduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NjE0OTcsImV4cCI6MjA2OTAzNzQ5N30.umBweRVL03pD2CySyQTTdPwJcxR1KacYtnXnXEbiVPA",
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`
+    try {
+      // Try Supabase template first, then fallback to default
+      let token = await getToken({ template: 'supabase' });
+      
+      if (!token) {
+        console.log('⚠️  No Supabase template token, trying default token...');
+        token = await getToken();
+      }
+      
+      if (!token) {
+        console.error('❌ No Clerk token available');
+        throw new Error('No authentication token available. Please sign in again.');
+      }
+      
+      console.log('✅ Got Clerk token, creating Supabase client');
+      console.log('Token preview:', token.substring(0, 50) + '...');
+      
+      // Enhanced token validation
+      try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+          throw new Error(`Invalid JWT format: expected 3 parts, got ${tokenParts.length}`);
+        }
+        
+        // Decode and validate payload
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log('Token payload:', {
+          iss: payload.iss,
+          sub: payload.sub,
+          aud: payload.aud,
+          exp: payload.exp,
+          iat: payload.iat,
+          email: payload.email
+        });
+        
+        // Check if token is expired
+        if (payload.exp && payload.exp < Date.now() / 1000) {
+          throw new Error('Token has expired');
+        }
+        
+      } catch (decodeError) {
+        console.error('❌ Token validation failed:', decodeError);
+        throw new Error('Invalid token format');
+      }
+      
+      return createClient<Database>(
+        "https://orrojshkpfiwhzayxzgn.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm9qc2hrcGZpd2h6YXl4emduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NjE0OTcsImV4cCI6MjA2OTAzNzQ5N30.umBweRVL03pD2CySyQTTdPwJcxR1KacYtnXnXEbiVPA",
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
           }
         }
-      }
-    );
+      );
+    } catch (error) {
+      console.error('💥 Error creating authenticated client:', error);
+      throw error;
+    }
   };
 
   // Create or sync student profile
@@ -113,6 +157,18 @@ export function useStudent() {
 
       if (selectError) {
         console.error('❌ Error checking for existing profile:', selectError);
+        console.error('Error details:', {
+          message: selectError.message,
+          details: selectError.details,
+          hint: selectError.hint,
+          code: selectError.code
+        });
+        
+        // Check if it's an authentication error
+        if (selectError.message?.includes('JWT') || selectError.message?.includes('auth')) {
+          throw new Error('Authentication failed. Please check your Clerk JWT template configuration.');
+        }
+        
         throw selectError;
       }
 
