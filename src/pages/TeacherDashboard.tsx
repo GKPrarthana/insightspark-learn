@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -46,7 +46,7 @@ interface Assignment {
 
 export function TeacherDashboard() {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState("/teacher");
+  const location = useLocation();
   const { profile, assignments, submissions, loading, error, refreshData } = useTeacher();
 
   if (loading) {
@@ -54,7 +54,7 @@ export function TeacherDashboard() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex">
-          <Navigation userRole="teacher" currentPath="/teacher" onNavigate={() => {}} />
+          <Navigation userRole="teacher" currentPath={location.pathname} onNavigate={navigate} />
           <main className="flex-1 p-6">
             <div className="flex items-center justify-center h-64">
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -73,7 +73,7 @@ export function TeacherDashboard() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex">
-          <Navigation userRole="teacher" currentPath="/teacher" onNavigate={() => {}} />
+          <Navigation userRole="teacher" currentPath={location.pathname} onNavigate={navigate} />
           <main className="flex-1 p-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -161,8 +161,8 @@ export function TeacherDashboard() {
       <div className="flex">
         <Navigation 
           userRole="teacher" 
-          currentPath={currentView}
-          onNavigate={setCurrentView}
+          currentPath={location.pathname}
+          onNavigate={navigate}
         />
         
         <main className="flex-1 p-6">
@@ -178,7 +178,7 @@ export function TeacherDashboard() {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button variant="outline" onClick={() => setCurrentView("/teacher/upload")}>
+                <Button variant="outline" onClick={() => navigate("/teacher/upload")}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Resource
                 </Button>
@@ -332,15 +332,27 @@ export function TeacherDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => navigate("/teacher/upload")}>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col space-y-2" 
+                    onClick={() => navigate("/teacher/upload")}
+                  >
                     <Upload className="w-6 h-6" />
                     <span>Upload New Resource</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex-col space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col space-y-2"
+                    onClick={() => navigate("/teacher/generate")}
+                  >
                     <Brain className="w-6 h-6" />
                     <span>AI Question Generator</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex-col space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col space-y-2"
+                    onClick={() => navigate("/teacher/students")}
+                  >
                     <Users className="w-6 h-6" />
                     <span>Manage Students</span>
                   </Button>
