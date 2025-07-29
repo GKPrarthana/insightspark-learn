@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -44,6 +45,7 @@ interface Assignment {
 }
 
 export function TeacherDashboard() {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState("/teacher");
   const { profile, assignments, submissions, loading, error, refreshData } = useTeacher();
 
@@ -330,7 +332,7 @@ export function TeacherDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => setCurrentView("/teacher/upload")}>
+                  <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => navigate("/teacher/upload")}>
                     <Upload className="w-6 h-6" />
                     <span>Upload New Resource</span>
                   </Button>
