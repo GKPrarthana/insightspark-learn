@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, useUser } from "@clerk/clerk-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { TeacherDashboard } from "./TeacherDashboard";
@@ -59,21 +59,57 @@ function RoleSelector() {
 
 function AuthenticatedApp() {
   const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<"teacher" | "student" | "guardian">("student");
   
-  // Get user role from metadata, fallback to localStorage for new users
-  const userRole = user?.unsafeMetadata?.role as "teacher" | "student" | "guardian" || 
-                   localStorage.getItem('pendingRole') as "teacher" | "student" | "guardian" || 
-                   "student";
-
-  // Update user metadata if role is only in localStorage
-  if (user && !user.unsafeMetadata?.role && localStorage.getItem('pendingRole')) {
-    user.update({
-      unsafeMetadata: {
-        ...user.unsafeMetadata,
-        role: localStorage.getItem('pendingRole')
+  useEffect(() => {
+    const setUserRoleAndMetadata = async () => {
+      if (!user) return;
+      
+      try {
+        const pendingRole = localStorage.getItem('pendingRole') as "teacher" | "student" | "guardian";
+        const currentRole = user.unsafeMetadata?.role as "teacher" | "student" | "guardian";
+        
+        // If we have a pending role and it's different from the current role, update it
+        if (pendingRole && pendingRole !== currentRole) {
+          await user.update({
+            unsafeMetadata: {
+              ...user.unsafeMetadata,
+              role: pendingRole
+            }
+          });
+          localStorage.removeItem('pendingRole');
+          setUserRole(pendingRole);
+        } else if (currentRole) {
+          setUserRole(currentRole);
+        } else if (pendingRole) {
+          // If no role in metadata but we have a pending role
+          await user.update({
+            unsafeMetadata: {
+              ...user.unsafeMetadata,
+              role: pendingRole
+            }
+          });
+          localStorage.removeItem('pendingRole');
+          setUserRole(pendingRole);
+        } else {
+          // Default role if none set
+          setUserRole("student");
+        }
+      } catch (error) {
+        console.error("Error updating user role:", error);
+        // Fallback to student role if there's an error
+        setUserRole("student");
+      } finally {
+        setIsLoading(false);
       }
-    });
-    localStorage.removeItem('pendingRole');
+    };
+
+    setUserRoleAndMetadata();
+  }, [user]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Or a nice loading spinner
   }
 
   if (userRole === "teacher") {
