@@ -103,6 +103,60 @@ export type Database = {
           },
         ]
       }
+      resources: {
+        Row: {
+          ai_processed: boolean | null
+          created_at: string
+          description: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          grade_level: string | null
+          id: string
+          questions_generated: Json | null
+          status: string
+          subject: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_processed?: boolean | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          grade_level?: string | null
+          id?: string
+          questions_generated?: Json | null
+          status?: string
+          subject: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_processed?: boolean | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          grade_level?: string | null
+          id?: string
+          questions_generated?: Json | null
+          status?: string
+          subject?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           created_at: string
