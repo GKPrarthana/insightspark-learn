@@ -176,7 +176,7 @@ export function TeacherDashboard() {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setCurrentView("/teacher/upload")}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Resource
                 </Button>
@@ -330,7 +330,7 @@ export function TeacherDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-20 flex-col space-y-2">
+                  <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => setCurrentView("/teacher/upload")}>
                     <Upload className="w-6 h-6" />
                     <span>Upload New Resource</span>
                   </Button>
