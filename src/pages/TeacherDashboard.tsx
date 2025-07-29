@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useTeacher } from "@/hooks/useTeacher";
+import { formatTimestamp } from "@/utils/formatTimestamp";
 import { 
   Users, 
   FileText, 
@@ -18,7 +20,8 @@ import {
   AlertCircle,
   MoreVertical,
   Eye,
-  Edit
+  Edit,
+  RefreshCw
 } from "lucide-react";
 
 interface RecentActivity {
@@ -42,77 +45,88 @@ interface Assignment {
 
 export function TeacherDashboard() {
   const [currentView, setCurrentView] = useState("/teacher");
+  const { profile, assignments, submissions, loading, error, refreshData } = useTeacher();
 
-  // Mock data
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex">
+          <Navigation userRole="teacher" currentPath="/teacher" onNavigate={() => {}} />
+          <main className="flex-1 p-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Loading teacher dashboard...
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex">
+          <Navigation userRole="teacher" currentPath="/teacher" onNavigate={() => {}} />
+          <main className="flex-1 p-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                <p className="text-destructive">{error}</p>
+                <Button onClick={refreshData} className="mt-4">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate stats from real data
+  const pendingSubmissions = submissions.filter(s => s.status === 'submitted').length;
+  const gradedSubmissions = submissions.filter(s => s.status === 'graded');
+  const averageScore = gradedSubmissions.length > 0 
+    ? gradedSubmissions.reduce((sum, s) => sum + (s.grade || 0), 0) / gradedSubmissions.length 
+    : 0;
+
   const stats = {
-    totalStudents: 156,
-    activeAssignments: 8,
-    pendingGrading: 23,
-    completionRate: 87
+    totalStudents: new Set(submissions.map(s => s.student_id)).size,
+    activeAssignments: assignments.filter(a => a.status === 'active').length,
+    pendingGrading: pendingSubmissions,
+    completionRate: Math.round(averageScore * 10) / 10
   };
 
-  const recentActivities: RecentActivity[] = [
-    {
-      id: "1",
-      type: "submission",
-      student: "Sarah Johnson",
-      assignment: "Algebra Quiz 3",
-      timestamp: "2 minutes ago",
-      status: "completed"
-    },
-    {
-      id: "2",
-      type: "generation",
-      assignment: "Physics Chapter 5 Test",
-      timestamp: "15 minutes ago",
-      status: "completed"
-    },
-    {
-      id: "3",
-      type: "grading",
-      assignment: "History Essay Assignment",
-      timestamp: "1 hour ago",
-      status: "in-progress"
-    },
-    {
-      id: "4",
-      type: "submission",
-      student: "Michael Chen",
-      assignment: "Chemistry Lab Report",
-      timestamp: "2 hours ago",
-      status: "pending"
-    }
-  ];
+  // Recent activity from submissions
+  const recentActivities: RecentActivity[] = submissions
+    .slice(0, 4)
+    .map(submission => ({
+      id: submission.id,
+      type: submission.status === 'graded' ? 'grading' : 'submission',
+      student: submission.student_profiles 
+        ? `${submission.student_profiles.first_name} ${submission.student_profiles.last_name}`
+        : 'Unknown Student',
+      assignment: assignments.find(a => a.id === submission.assignment_id)?.title || 'Unknown Assignment',
+      timestamp: formatTimestamp(submission.submitted_at || submission.created_at),
+      status: submission.status === 'graded' ? 'completed' : 'pending'
+    }));
 
-  const assignments: Assignment[] = [
-    {
-      id: "1",
-      title: "Algebra Quiz 3",
-      subject: "Mathematics",
-      dueDate: "2024-01-20",
-      submitted: 28,
-      total: 32,
-      status: "active"
-    },
-    {
-      id: "2",
-      title: "Physics Chapter 5 Test",
-      subject: "Physics",
-      dueDate: "2024-01-22",
-      submitted: 15,
-      total: 30,
-      status: "active"
-    },
-    {
-      id: "3",
-      title: "History Essay Assignment",
-      subject: "History",
-      dueDate: "2024-01-25",
-      submitted: 12,
-      total: 28,
-      status: "active"
-    }
-  ];
+  // Convert assignments to the expected format for the UI
+  const assignmentData: Assignment[] = assignments.map(assignment => ({
+    id: assignment.id,
+    title: assignment.title,
+    subject: assignment.subject,
+    dueDate: new Date(assignment.due_date).toISOString().split('T')[0],
+    submitted: submissions.filter(s => s.assignment_id === assignment.id && s.status === 'submitted').length,
+    total: submissions.filter(s => s.assignment_id === assignment.id).length,
+    status: assignment.status as "active" | "draft" | "closed"
+  }));
 
   const getActivityIcon = (type: RecentActivity['type']) => {
     switch (type) {
@@ -154,7 +168,9 @@ export function TeacherDashboard() {
             {/* Welcome Section */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Welcome back, Dr. Rodriguez</h1>
+                <h1 className="text-3xl font-bold text-foreground">
+                  Welcome back, {profile?.first_name} {profile?.last_name}
+                </h1>
                 <p className="text-muted-foreground mt-1">
                   Here's what's happening with your classes today
                 </p>
@@ -192,8 +208,8 @@ export function TeacherDashboard() {
                 trend={{ value: -15, label: "from yesterday", type: "down" }}
               />
               <StatsCard
-                title="Completion Rate"
-                value={`${stats.completionRate}%`}
+                title="Average Score"
+                value={`${stats.completionRate}`}
                 icon={TrendingUp}
                 progress={{ value: stats.completionRate, label: "Overall" }}
               />
@@ -252,7 +268,7 @@ export function TeacherDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {assignments.map((assignment) => (
+                    {assignmentData.map((assignment) => (
                       <div key={assignment.id} className="p-4 border border-border rounded-lg">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
