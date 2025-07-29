@@ -17,12 +17,15 @@ import {
   Brain
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useTeacher } from "@/hooks/useTeacher";
 
 interface UploadedFile {
   id: string;
   name: string;
   size: number;
   type: string;
+  file: File;
   status: "uploading" | "processing" | "completed" | "error";
   progress: number;
 }
@@ -35,6 +38,7 @@ export function UploadResource() {
   const [subject, setSubject] = useState("");
   const [gradeLevel, setGradeLevel] = useState("");
   const { toast } = useToast();
+  const { profile } = useTeacher();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -68,56 +72,105 @@ export function UploadResource() {
       name: file.name,
       size: file.size,
       type: file.type,
+      file: file,
       status: "uploading",
       progress: 0
     }));
 
     setFiles(prev => [...prev, ...newFiles]);
 
-    // Simulate upload progress
-    newFiles.forEach(file => {
-      simulateUpload(file.id);
+    // Start real upload for each file
+    newFiles.forEach(uploadedFile => {
+      uploadToSupabase(uploadedFile.file, uploadedFile.id);
     });
   };
 
-  const simulateUpload = (fileId: string) => {
-    const intervals = [];
-    let progress = 0;
+  const uploadToSupabase = useCallback(async (file: File, fileId: string) => {
+    if (!profile) {
+      toast({
+        title: "Error",
+        description: "Please ensure you're logged in as a teacher",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const uploadInterval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(uploadInterval);
-        
-        setFiles(prev => prev.map(f => 
-          f.id === fileId 
-            ? { ...f, status: "processing", progress: 100 }
-            : f
-        ));
+    try {
+      // Create unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/${Date.now()}-${file.name}`;
+      
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resources')
+        .upload(fileName, file);
 
-        // Simulate AI processing
-        setTimeout(() => {
+      if (uploadError) throw uploadError;
+
+      // Save resource metadata to database
+      const { data: resourceData, error: dbError } = await supabase
+        .from('resources')
+        .insert({
+          teacher_id: profile.id,
+          title: title || file.name,
+          description: description,
+          subject: subject,
+          grade_level: gradeLevel,
+          file_url: uploadData.path,
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          status: 'processing'
+        })
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      // Mark as uploaded and processing
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, status: "processing", progress: 100 } : f
+      ));
+
+      // Simulate AI processing for now (replace with real AI function later)
+      setTimeout(async () => {
+        try {
+          // Update status to completed
+          await supabase
+            .from('resources')
+            .update({ status: 'completed', ai_processed: true })
+            .eq('id', resourceData.id);
+
+          // Mark as completed
           setFiles(prev => prev.map(f => 
-            f.id === fileId 
-              ? { ...f, status: "completed" }
-              : f
+            f.id === fileId ? { ...f, status: "completed" } : f
           ));
-          
+
           toast({
             title: "Resource processed successfully",
-            description: "AI analysis completed. Ready to generate questions.",
+            description: "File uploaded and ready for question generation.",
           });
-        }, 2000);
-      } else {
-        setFiles(prev => prev.map(f => 
-          f.id === fileId 
-            ? { ...f, progress }
-            : f
-        ));
-      }
-    }, 500);
-  };
+        } catch (error: any) {
+          console.error('Processing error:', error);
+          setFiles(prev => prev.map(f => 
+            f.id === fileId ? { ...f, status: "error" } : f
+          ));
+        }
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, status: "error", progress: 100 } : f
+      ));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload resource",
+        variant: "destructive",
+      });
+    }
+  }, [title, description, subject, gradeLevel, profile, toast]);
 
   const removeFile = (fileId: string) => {
     setFiles(prev => prev.filter(f => f.id !== fileId));
