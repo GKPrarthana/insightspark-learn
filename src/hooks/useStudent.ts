@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,6 +49,7 @@ interface StudentProgress {
 
 export function useStudent() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -60,12 +61,21 @@ export function useStudent() {
     if (!user) return;
 
     try {
+      // Get Clerk JWT token for Supabase auth
+      const token = await getToken({ template: 'supabase' });
+      if (token) {
+        await supabase.auth.setSession({
+          access_token: token,
+          refresh_token: ''
+        });
+      }
+
       // Check if profile exists
       const { data: existingProfile } = await supabase
         .from('student_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existingProfile) {
         setProfile(existingProfile);
