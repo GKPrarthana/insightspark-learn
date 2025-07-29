@@ -56,11 +56,20 @@ export function useStudent() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Create authenticated Supabase client
   const getAuthenticatedClient = async () => {
+    console.log('🔐 Getting Clerk token for Supabase...');
     const token = await getToken({ template: 'supabase' });
-    if (!token) throw new Error('No authentication token available');
+    
+    if (!token) {
+      console.error('❌ No Clerk token available');
+      throw new Error('No authentication token available');
+    }
+    
+    console.log('✅ Got Clerk token, creating Supabase client');
+    console.log('Token preview:', token.substring(0, 50) + '...');
     
     return createClient<Database>(
       "https://orrojshkpfiwhzayxzgn.supabase.co",
@@ -77,21 +86,43 @@ export function useStudent() {
 
   // Create or sync student profile
   const syncProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('⚠️  No user found, skipping profile sync');
+      return;
+    }
+
+    console.log('👤 Starting profile sync for user:', user.id);
+    console.log('User data:', { 
+      id: user.id, 
+      firstName: user.firstName, 
+      lastName: user.lastName,
+      email: user.emailAddresses[0]?.emailAddress 
+    });
 
     try {
+      console.log('🔌 Creating authenticated client...');
       const client = await getAuthenticatedClient();
+      console.log('✅ Client created successfully');
 
-      // Check if profile exists
-      const { data: existingProfile } = await client
+      console.log('🔍 Checking for existing profile...');
+      const { data: existingProfile, error: selectError } = await client
         .from('student_profiles')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (selectError) {
+        console.error('❌ Error checking for existing profile:', selectError);
+        throw selectError;
+      }
+
       if (existingProfile) {
+        console.log('✅ Found existing profile:', existingProfile);
         setProfile(existingProfile);
+        setError(null);
       } else {
+        console.log('➕ No existing profile found, creating new one...');
+        
         // Create new profile
         const newProfile = {
           user_id: user.id,
@@ -102,14 +133,22 @@ export function useStudent() {
           gpa: 0.0
         };
 
+        console.log('📝 Inserting new profile:', newProfile);
+
         const { data, error } = await client
           .from('student_profiles')
           .insert(newProfile)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error creating profile:', error);
+          throw error;
+        }
+
+        console.log('✅ Profile created successfully:', data);
         setProfile(data);
+        setError(null);
 
         toast({
           title: "Welcome!",
@@ -117,7 +156,10 @@ export function useStudent() {
         });
       }
     } catch (error) {
-      console.error('Error syncing profile:', error);
+      console.error('💥 Error syncing profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`Failed to sync profile: ${errorMessage}`);
+      
       toast({
         title: "Profile Error",
         description: "Failed to sync your profile. Please try again.",
@@ -281,13 +323,25 @@ export function useStudent() {
 
   useEffect(() => {
     if (user) {
-      syncProfile();
+      console.log('🚀 User detected, starting profile sync...');
+      syncProfile().finally(() => {
+        // Always set loading to false after profile sync attempt
+        if (!profile) {
+          console.log('⚠️  Profile sync completed but no profile found, stopping loading');
+          setLoading(false);
+        }
+      });
+    } else {
+      console.log('⚠️  No user found, stopping loading');
+      setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     if (profile) {
+      console.log('📊 Profile found, fetching assignments and progress...');
       Promise.all([fetchAssignments(), fetchProgress()]).finally(() => {
+        console.log('✅ All data loaded, stopping loading');
         setLoading(false);
       });
     }
@@ -298,6 +352,7 @@ export function useStudent() {
     assignments,
     progress,
     loading,
+    error,
     submitAssignment,
     saveDraft,
     refreshData: () => Promise.all([fetchAssignments(), fetchProgress()])

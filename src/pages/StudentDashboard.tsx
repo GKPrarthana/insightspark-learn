@@ -38,7 +38,7 @@ interface Grade {
 export function StudentDashboard() {
   const [currentView, setCurrentView] = useState("/student");
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
-  const { profile, assignments, progress, loading, submitAssignment, saveDraft } = useStudent();
+  const { profile, assignments, progress, loading, error, submitAssignment, saveDraft } = useStudent();
 
   if (loading) {
     return (
@@ -51,11 +51,20 @@ export function StudentDashboard() {
     );
   }
 
-  if (!profile) {
+  if (!loading && !profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Failed to load profile. Please refresh the page.</p>
+        <div className="text-center space-y-4">
+          <AlertCircle className="w-12 h-12 mx-auto text-destructive" />
+          <div>
+            <p className="text-lg font-semibold text-foreground">Unable to Load Profile</p>
+            <p className="text-muted-foreground mt-2">
+              {error || "Failed to load your student profile. Please try refreshing the page."}
+            </p>
+          </div>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
         </div>
       </div>
     );
