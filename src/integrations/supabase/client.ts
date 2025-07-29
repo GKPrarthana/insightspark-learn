@@ -15,3 +15,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: false,
   }
 });
+
+// Set up Clerk JWT integration for Supabase
+if (typeof window !== 'undefined') {
+  import('@clerk/clerk-react').then(({ useAuth }) => {
+    // This will be handled by the useStudent hook
+  });
+}

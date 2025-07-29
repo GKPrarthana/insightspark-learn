@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 
 interface StudentProfile {
@@ -56,22 +57,33 @@ export function useStudent() {
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Create authenticated Supabase client
+  const getAuthenticatedClient = async () => {
+    const token = await getToken({ template: 'supabase' });
+    if (!token) throw new Error('No authentication token available');
+    
+    return createClient<Database>(
+      "https://orrojshkpfiwhzayxzgn.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm9qc2hrcGZpd2h6YXl4emduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NjE0OTcsImV4cCI6MjA2OTAzNzQ5N30.umBweRVL03pD2CySyQTTdPwJcxR1KacYtnXnXEbiVPA",
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+  };
+
   // Create or sync student profile
   const syncProfile = async () => {
     if (!user) return;
 
     try {
-      // Get Clerk JWT token for Supabase auth
-      const token = await getToken({ template: 'supabase' });
-      if (token) {
-        await supabase.auth.setSession({
-          access_token: token,
-          refresh_token: ''
-        });
-      }
+      const client = await getAuthenticatedClient();
 
       // Check if profile exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile } = await client
         .from('student_profiles')
         .select('*')
         .eq('user_id', user.id)
@@ -90,7 +102,7 @@ export function useStudent() {
           gpa: 0.0
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await client
           .from('student_profiles')
           .insert(newProfile)
           .select()
@@ -119,8 +131,10 @@ export function useStudent() {
     if (!profile) return;
 
     try {
+      const client = await getAuthenticatedClient();
+      
       // First get enrollment IDs
-      const { data: enrollments, error: enrollmentError } = await supabase
+      const { data: enrollments, error: enrollmentError } = await client
         .from('assignment_enrollments')
         .select('assignment_id')
         .eq('student_id', profile.id);
@@ -134,7 +148,7 @@ export function useStudent() {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('assignments')
         .select(`
           *,
@@ -190,7 +204,8 @@ export function useStudent() {
     if (!profile) return;
 
     try {
-      const { data, error } = await supabase
+      const client = await getAuthenticatedClient();
+      const { data, error } = await client
         .from('student_progress')
         .select('*')
         .eq('student_id', profile.id);
@@ -207,7 +222,8 @@ export function useStudent() {
     if (!profile) return;
 
     try {
-      const { error } = await supabase
+      const client = await getAuthenticatedClient();
+      const { error } = await client
         .from('student_submissions')
         .upsert({
           assignment_id: assignmentId,
@@ -242,7 +258,8 @@ export function useStudent() {
     if (!profile) return;
 
     try {
-      const { error } = await supabase
+      const client = await getAuthenticatedClient();
+      const { error } = await client
         .from('student_submissions')
         .upsert({
           assignment_id: assignmentId,
