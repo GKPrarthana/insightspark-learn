@@ -7,7 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardList, Plus, Search, Calendar, Users, Clock, MoreHorizontal } from "lucide-react";
+import { 
+  ClipboardList, 
+  Plus, 
+  Search, 
+  Calendar, 
+  Users, 
+  Clock, 
+  MoreHorizontal 
+} from "lucide-react";
 
 export function TeacherAssignments() {
   const [searchTerm, setSearchTerm] = useState("");
