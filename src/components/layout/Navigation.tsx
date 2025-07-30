@@ -35,7 +35,7 @@ export function Navigation({ userRole, currentPath = "/", onNavigate }: Navigati
         return [
           { name: "Dashboard", icon: BarChart3, href: "/teacher" },
           { name: "Upload Resources", icon: Upload, href: "/teacher/upload" },
-          { name: "Question Papers", icon: FileText, href: "/teacher/questions" },
+          { name: "Question Papers", icon: FileText, href: "/teacher/question-papers" },
           { name: "Students", icon: Users, href: "/teacher/students" },
           { name: "Assignments", icon: ClipboardList, href: "/teacher/assignments" },
           { name: "Billing", icon: CreditCard, href: "/teacher/billing" },
