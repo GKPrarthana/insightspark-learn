@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { CreditCard, Download, Calendar, DollarSign, Users, FileText, CheckCircle, AlertCircle } from "lucide-react";
 
 export function TeacherBilling() {
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState("premium");
 
   // Mock billing data
@@ -94,7 +96,7 @@ export function TeacherBilling() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/billing" onNavigate={() => {}} />
+        <Navigation userRole="teacher" currentPath="/teacher/billing" onNavigate={navigate} />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
@@ -207,8 +209,12 @@ export function TeacherBilling() {
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button variant="outline" className="flex-1">
-                      Change Plan
+                    <Button 
+                      className="w-full gap-2"
+                      onClick={() => navigate("/teacher/billing/payment-methods")}
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      Update Payment Method
                     </Button>
                     <Button variant="outline" className="flex-1">
                       Cancel Subscription
@@ -259,8 +265,13 @@ export function TeacherBilling() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <FileText className="h-4 w-4" />
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => window.open(`/api/invoices/${transaction.invoice}`, '_blank')}
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Invoice
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -314,11 +325,11 @@ export function TeacherBilling() {
                         </div>
 
                         <Button 
-                          className="w-full" 
-                          variant={plan.name.toLowerCase() === currentPlan.name.toLowerCase() ? "secondary" : "default"}
-                          disabled={plan.name.toLowerCase() === currentPlan.name.toLowerCase()}
+                          className="w-full"
+                          disabled={plan.name === currentPlan.name}
+                          onClick={() => navigate(`/teacher/billing/upgrade?plan=${plan.name.toLowerCase()}`)}
                         >
-                          {plan.name.toLowerCase() === currentPlan.name.toLowerCase() ? "Current Plan" : "Select Plan"}
+                          {plan.name === currentPlan.name ? "Current Plan" : "Upgrade"}
                         </Button>
                       </CardContent>
                     </Card>

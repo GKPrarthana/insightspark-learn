@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { User, Bell, Shield, Palette, Mail, Phone, MapPin, Save, Upload } from "lucide-react";
 
 export function TeacherSettings() {
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -62,7 +64,7 @@ export function TeacherSettings() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/settings" onNavigate={() => {}} />
+        <Navigation userRole="teacher" currentPath="/teacher/settings" onNavigate={navigate} />
         
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto">
@@ -91,9 +93,26 @@ export function TeacherSettings() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
-                      <Button variant="outline" className="gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="gap-2"
+                        onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                      >
                         <Upload className="h-4 w-4" />
                         Upload Photo
+                        <input
+                          id="profile-photo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              // Handle file upload logic here
+                              console.log('Uploading file:', file);
+                            }
+                          }}
+                        />
                       </Button>
                       <p className="text-sm text-muted-foreground">
                         Recommended: Square image, at least 400x400px
@@ -187,9 +206,16 @@ export function TeacherSettings() {
                     />
                   </div>
 
-                  <Button onClick={handleSaveProfile} className="gap-2">
+                  <Button 
+                    onClick={() => {
+                      handleSaveProfile();
+                      // Show success message
+                      console.log('Profile saved successfully');
+                    }} 
+                    className="gap-2"
+                  >
                     <Save className="h-4 w-4" />
-                    Save Profile
+                    Save Changes
                   </Button>
                 </CardContent>
               </Card>
@@ -283,9 +309,16 @@ export function TeacherSettings() {
                     </div>
                   </div>
 
-                  <Button onClick={handleSaveNotifications} className="gap-2">
+                  <Button 
+                    onClick={() => {
+                      handleSaveNotifications();
+                      // Show success message
+                      console.log('Notification settings saved');
+                    }} 
+                    className="gap-2"
+                  >
                     <Save className="h-4 w-4" />
-                    Save Notifications
+                    Save Notification Settings
                   </Button>
                 </CardContent>
               </Card>
@@ -384,7 +417,14 @@ export function TeacherSettings() {
                     </div>
                   </div>
 
-                  <Button onClick={handleSavePreferences} className="gap-2">
+                  <Button 
+                    onClick={() => {
+                      handleSavePreferences();
+                      // Show success message
+                      console.log('Preferences saved');
+                    }} 
+                    className="gap-2"
+                  >
                     <Save className="h-4 w-4" />
                     Save Preferences
                   </Button>

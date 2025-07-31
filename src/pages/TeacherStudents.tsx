@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, Plus, Search, Mail, Phone, MoreHorizontal, UserPlus } from "lucide-react";
 
 export function TeacherStudents() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Mock data for students
@@ -89,7 +91,7 @@ export function TeacherStudents() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/students" onNavigate={() => {}} />
+        <Navigation userRole="teacher" currentPath="/teacher/students" onNavigate={navigate} />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
@@ -98,7 +100,10 @@ export function TeacherStudents() {
                 <h1 className="text-3xl font-bold text-foreground">Students</h1>
                 <p className="text-muted-foreground">Manage your students and track their progress</p>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => navigate("/teacher/students/new")}
+              >
                 <UserPlus className="h-4 w-4" />
                 Add Student
               </Button>
@@ -175,8 +180,8 @@ export function TeacherStudents() {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline">Filter</Button>
-                  <Button variant="outline">Export</Button>
+                  <Button variant="outline" onClick={() => {}}>Filter</Button>
+                  <Button variant="outline" onClick={() => {}}>Export</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -234,7 +239,11 @@ export function TeacherStudents() {
                           {new Date(student.enrolledAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => navigate(`/teacher/students/${student.id}`)}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </TableCell>

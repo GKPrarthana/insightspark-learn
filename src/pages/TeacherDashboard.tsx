@@ -182,7 +182,7 @@ export function TeacherDashboard() {
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Resource
                 </Button>
-                <Button variant="hero">
+                <Button variant="hero" onClick={() => navigate("/teacher/upload?tab=questions")}>
                   <Brain className="w-4 h-4 mr-2" />
                   Generate Questions
                 </Button>
@@ -254,8 +254,13 @@ export function TeacherDashboard() {
                       </div>
                     ))}
                   </div>
-                  <Button variant="ghost" className="w-full mt-4">
-                    View All Activity
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-primary"
+                    onClick={() => navigate("/teacher/activity")}
+                  >
+                    View All
                   </Button>
                 </CardContent>
               </Card>

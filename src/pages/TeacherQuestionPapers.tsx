@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Plus, Search, Download, Edit, Trash2 } from "lucide-react";
 
 export function TeacherQuestionPapers() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Mock data for question papers
@@ -64,7 +66,7 @@ export function TeacherQuestionPapers() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/question-papers" onNavigate={() => {}} />
+        <Navigation userRole="teacher" currentPath="/teacher/question-papers" onNavigate={navigate} />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
@@ -73,7 +75,10 @@ export function TeacherQuestionPapers() {
                 <h1 className="text-3xl font-bold text-foreground">Question Papers</h1>
                 <p className="text-muted-foreground">Create and manage your question papers</p>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => navigate("/teacher/question-papers/new")}
+              >
                 <Plus className="h-4 w-4" />
                 Create New Paper
               </Button>
@@ -92,7 +97,7 @@ export function TeacherQuestionPapers() {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline">Filter</Button>
+                  <Button variant="outline" onClick={() => {}}>Filter</Button>
                 </div>
               </CardContent>
             </Card>
@@ -134,8 +139,12 @@ export function TeacherQuestionPapers() {
                           <Download className="h-3 w-3" />
                           Export
                         </Button>
-                        <Button size="sm" variant="outline" className="px-2">
-                          <Trash2 className="h-3 w-3" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/teacher/question-papers/${paper.id}/edit`)}
+                        >
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

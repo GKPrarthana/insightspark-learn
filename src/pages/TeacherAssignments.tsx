@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export function TeacherAssignments() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Mock data for assignments
@@ -109,7 +111,7 @@ export function TeacherAssignments() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/assignments" onNavigate={() => {}} />
+        <Navigation userRole="teacher" currentPath="/teacher/assignments" onNavigate={(path) => navigate(path)} />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
@@ -118,7 +120,10 @@ export function TeacherAssignments() {
                 <h1 className="text-3xl font-bold text-foreground">Assignments</h1>
                 <p className="text-muted-foreground">Create and manage your assignments</p>
               </div>
-              <Button className="gap-2">
+              <Button 
+                className="gap-2"
+                onClick={() => navigate("/teacher/assignments/new")}
+              >
                 <Plus className="h-4 w-4" />
                 Create Assignment
               </Button>
@@ -202,8 +207,8 @@ export function TeacherAssignments() {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline">Filter</Button>
-                  <Button variant="outline">Export</Button>
+                  <Button variant="outline" onClick={() => {}}>Filter</Button>
+                  <Button variant="outline" onClick={() => {}}>Export</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -272,7 +277,11 @@ export function TeacherAssignments() {
                             <div className="font-medium">{assignment.points} pts</div>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/teacher/assignments/${assignment.id}`)}
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </TableCell>
