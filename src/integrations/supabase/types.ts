@@ -324,6 +324,27 @@ export type Database = {
         }
         Relationships: []
       }
+      uploads_table: {
+        Row: {
+          file_name: string
+          id: number
+          uploaded_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: never
+          uploaded_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: never
+          uploaded_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
