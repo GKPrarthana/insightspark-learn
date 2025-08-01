@@ -124,7 +124,7 @@ export function StudentNotifications() {
       <Header />
       
       <div className="flex">
-        <Navigation userRole="student" currentPath="/student/notifications" />
+        <Navigation userRole="student" />
         
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto space-y-6">

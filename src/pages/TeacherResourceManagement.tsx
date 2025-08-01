@@ -17,11 +17,7 @@ export function TeacherResourceManagement() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation 
-          userRole="teacher" 
-          currentPath={location.pathname}
-          onNavigate={navigate}
-        />
+        <Navigation userRole="teacher" />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">

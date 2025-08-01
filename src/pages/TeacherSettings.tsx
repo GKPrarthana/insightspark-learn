@@ -64,7 +64,7 @@ export function TeacherSettings() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/settings" onNavigate={navigate} />
+        <Navigation userRole="teacher" />
         
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto">

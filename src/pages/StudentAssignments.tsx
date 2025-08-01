@@ -35,7 +35,7 @@ export function StudentAssignments() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex">
-          <Navigation userRole="student" currentPath="/student/assignments" />
+        <Navigation userRole="student" />
           <main className="flex-1 p-6">
             <Button 
               variant="outline" 
@@ -74,7 +74,7 @@ export function StudentAssignments() {
       <Header />
       
       <div className="flex">
-        <Navigation userRole="student" currentPath="/student/assignments" />
+        <Navigation userRole="student" />
         
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto space-y-6">

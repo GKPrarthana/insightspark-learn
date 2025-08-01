@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   BookOpen, 
   FileText, 
@@ -19,16 +20,17 @@ interface NavigationItem {
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   badge?: string | number;
-  active?: boolean;
 }
 
 interface NavigationProps {
   userRole: "teacher" | "student" | "guardian";
-  currentPath?: string;
-  onNavigate?: (path: string) => void;
 }
 
-export function Navigation({ userRole, currentPath = "/", onNavigate }: NavigationProps) {
+export function Navigation({ userRole }: NavigationProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const getNavigationItems = (): NavigationItem[] => {
     switch (userRole) {
       case "teacher":
@@ -67,9 +69,7 @@ export function Navigation({ userRole, currentPath = "/", onNavigate }: Navigati
   const navigationItems = getNavigationItems();
 
   const handleNavigate = (href: string) => {
-    if (onNavigate) {
-      onNavigate(href);
-    }
+    navigate(href);
   };
 
   return (

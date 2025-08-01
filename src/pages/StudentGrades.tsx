@@ -44,7 +44,7 @@ export function StudentGrades() {
       <Header />
       
       <div className="flex">
-        <Navigation userRole="student" currentPath="/student/grades" />
+        <Navigation userRole="student" />
         
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto space-y-6">

@@ -111,7 +111,7 @@ export function TeacherAssignments() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex">
-        <Navigation userRole="teacher" currentPath="/teacher/assignments" onNavigate={(path) => navigate(path)} />
+        <Navigation userRole="teacher" />
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
